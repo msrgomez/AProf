@@ -54,7 +54,14 @@ class Perceptron(LinearModel):
         other arguments are ignored
         """
         # Q1.1a
-        raise NotImplementedError
+
+        # Get prediction of y
+        y_hat_i = self.predict(x_i)
+
+        # If prediction is wrong, update weight
+        if (y_hat_i != y_i):
+            self.W[y_i, :] +=  x_i # Increase weight of gold label
+            self.W[y_hat_i, :] -= x_i # Decrease weight of incorrect class
 
 
 class LogisticRegression(LinearModel):
@@ -65,7 +72,18 @@ class LogisticRegression(LinearModel):
         learning_rate (float): keep it at the default value for your plots
         """
         # Q1.1b
-        raise NotImplementedError
+        
+        scores = self.W.dot(x_i)[:, None] # Calculate the scores
+
+        softmax = np.exp(scores) / np.sum(np.exp(scores)) # Softmax function
+        
+        y_one_hot = np.zeros((np.size(self.W, 0), 1)) # One hot encoding [nlabels,1]
+        y_one_hot[y_i] = 1 #All the positions of the vector are null except for the position of y_i
+
+        # SGD update. W is num_labels x num_features.
+        #self.W -= learning_rate * (softmax - y_one_hot) * x_i[None, : ]
+        x_i = x_i.reshape(x_i.shape[0] , 1)
+        self.W -= learning_rate * (softmax - y_one_hot).dot(x_i.T)
 
 
 class MLP(object):
@@ -140,6 +158,7 @@ def main():
     # initialize the model
     if opt.model == 'perceptron':
         model = Perceptron(n_classes, n_feats)
+        print("Perceptron")
     elif opt.model == 'logistic_regression':
         model = LogisticRegression(n_classes, n_feats)
     else:
